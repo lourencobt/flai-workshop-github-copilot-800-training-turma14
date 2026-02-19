@@ -11,14 +11,10 @@ function Activities() {
 
     fetch(apiUrl)
       .then((response) => {
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
+        if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
         return response.json();
       })
       .then((data) => {
-        console.log('Activities fetched data:', data);
-        // Handle both paginated (.results) and plain array responses
         const results = Array.isArray(data) ? data : data.results || [];
         setActivities(results);
         setLoading(false);
@@ -30,38 +26,75 @@ function Activities() {
       });
   }, []);
 
-  if (loading) return <div className="text-center mt-4"><div className="spinner-border" role="status"></div></div>;
-  if (error) return <div className="alert alert-danger mt-4">Error: {error}</div>;
+  if (loading) {
+    return (
+      <div className="octofit-spinner">
+        <div className="spinner-border text-success" role="status">
+          <span className="visually-hidden">Loading activities...</span>
+        </div>
+        <p className="mt-3 text-muted">Loading activities...</p>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="container mt-4">
+        <div className="alert alert-danger d-flex align-items-center" role="alert">
+          <span className="me-2">&#9888;</span>
+          <div><strong>Error loading activities:</strong> {error}</div>
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <div className="container mt-4">
-      <h2>Activities</h2>
-      <table className="table table-striped table-bordered">
-        <thead className="table-dark">
-          <tr>
-            <th>User</th>
-            <th>Activity Type</th>
-            <th>Duration (min)</th>
-            <th>Date</th>
-          </tr>
-        </thead>
-        <tbody>
+    <div className="container mt-4 mb-5">
+      <div className="card data-card">
+        {/* Card Header */}
+        <div className="card-header d-flex align-items-center justify-content-between">
+          <h2 className="mb-0">🏃 Activities <span className="count-badge">{activities.length}</span></h2>
+        </div>
+
+        {/* Card Body – Table */}
+        <div className="card-body">
           {activities.length === 0 ? (
-            <tr>
-              <td colSpan="4" className="text-center">No activities found.</td>
-            </tr>
+            <div className="empty-state">
+              <div className="empty-icon">🏃</div>
+              <p className="fw-semibold">No activities found.</p>
+            </div>
           ) : (
-            activities.map((activity) => (
-              <tr key={activity._id || activity.id}>
-                <td>{activity.user}</td>
-                <td>{activity.activity_type}</td>
-                <td>{activity.duration}</td>
-                <td>{activity.date}</td>
-              </tr>
-            ))
+            <div className="table-responsive">
+              <table className="table table-striped table-hover octofit-table mb-0">
+                <thead>
+                  <tr>
+                    <th scope="col">#</th>
+                    <th scope="col">User</th>
+                    <th scope="col">Activity Type</th>
+                    <th scope="col">Duration</th>
+                    <th scope="col">Date</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {activities.map((activity, index) => (
+                    <tr key={activity._id || activity.id}>
+                      <td className="text-muted">{index + 1}</td>
+                      <td><strong>{activity.user}</strong></td>
+                      <td>
+                        <span className="activity-badge">{activity.activity_type}</span>
+                      </td>
+                      <td>
+                        <span className="duration-badge">{activity.duration} min</span>
+                      </td>
+                      <td>{activity.date}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           )}
-        </tbody>
-      </table>
+        </div>
+      </div>
     </div>
   );
 }

@@ -11,14 +11,10 @@ function Workouts() {
 
     fetch(apiUrl)
       .then((response) => {
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
+        if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
         return response.json();
       })
       .then((data) => {
-        console.log('Workouts fetched data:', data);
-        // Handle both paginated (.results) and plain array responses
         const results = Array.isArray(data) ? data : data.results || [];
         setWorkouts(results);
         setLoading(false);
@@ -30,34 +26,69 @@ function Workouts() {
       });
   }, []);
 
-  if (loading) return <div className="text-center mt-4"><div className="spinner-border" role="status"></div></div>;
-  if (error) return <div className="alert alert-danger mt-4">Error: {error}</div>;
+  if (loading) {
+    return (
+      <div className="octofit-spinner">
+        <div className="spinner-border text-success" role="status">
+          <span className="visually-hidden">Loading workouts...</span>
+        </div>
+        <p className="mt-3 text-muted">Loading workouts...</p>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="container mt-4">
+        <div className="alert alert-danger d-flex align-items-center" role="alert">
+          <span className="me-2">&#9888;</span>
+          <div><strong>Error loading workouts:</strong> {error}</div>
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <div className="container mt-4">
-      <h2>Workouts</h2>
-      <table className="table table-striped table-bordered">
-        <thead className="table-dark">
-          <tr>
-            <th>Workout Name</th>
-            <th>Description</th>
-          </tr>
-        </thead>
-        <tbody>
+    <div className="container mt-4 mb-5">
+      <div className="card data-card">
+        {/* Card Header */}
+        <div className="card-header d-flex align-items-center justify-content-between">
+          <h2 className="mb-0">💪 Workouts <span className="count-badge">{workouts.length}</span></h2>
+        </div>
+
+        {/* Card Body – Table */}
+        <div className="card-body">
           {workouts.length === 0 ? (
-            <tr>
-              <td colSpan="2" className="text-center">No workouts found.</td>
-            </tr>
+            <div className="empty-state">
+              <div className="empty-icon">💪</div>
+              <p className="fw-semibold">No workouts found.</p>
+            </div>
           ) : (
-            workouts.map((workout) => (
-              <tr key={workout._id || workout.id}>
-                <td>{workout.name}</td>
-                <td>{workout.description}</td>
-              </tr>
-            ))
+            <div className="table-responsive">
+              <table className="table table-striped table-hover octofit-table mb-0">
+                <thead>
+                  <tr>
+                    <th scope="col">#</th>
+                    <th scope="col">Workout Name</th>
+                    <th scope="col">Description</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {workouts.map((workout, index) => (
+                    <tr key={workout._id || workout.id}>
+                      <td className="text-muted">{index + 1}</td>
+                      <td>
+                        <strong>{workout.name}</strong>
+                      </td>
+                      <td className="text-muted">{workout.description}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           )}
-        </tbody>
-      </table>
+        </div>
+      </div>
     </div>
   );
 }
